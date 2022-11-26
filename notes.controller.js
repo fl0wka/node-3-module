@@ -5,7 +5,7 @@ const chalk = require('chalk');
 const notesPath = path.join(__dirname, 'db.json');
 
 async function addNote(title) {
-  const notes = await getNote();
+  const notes = await getNotes();
 
   const note = {
     title,
@@ -19,21 +19,36 @@ async function addNote(title) {
 }
 
 async function removeNote(id) {
-  const notes = await getNote();
+  const notes = await getNotes();
 
-  const updateNotes = notes.filter((note) => id !== note.id);
-  await fs.writeFile(notesPath, JSON.stringify(updateNotes));
+  const updatedNotes = notes.filter((note) => id !== note.id);
+  await fs.writeFile(notesPath, JSON.stringify(updatedNotes));
 
   console.log(chalk.bgGreenBright('Note was deleted'));
 }
 
-async function getNote() {
+async function editNote(id, title) {
+  const notes = await getNotes();
+
+  const updatedNotes = notes.map((note) => {
+    if (note.id === id) {
+      return { ...note, title: title };
+    } else {
+      return note;
+    }
+  });
+  await fs.writeFile(notesPath, JSON.stringify(updatedNotes));
+
+  console.log(chalk.bgGreenBright('Note was edited'));
+}
+
+async function getNotes() {
   const notes = await fs.readFile(notesPath, { encoding: 'utf-8' });
   return Array.isArray(JSON.parse(notes)) ? JSON.parse(notes) : [];
 }
 
 async function printNotes() {
-  const notes = await getNote();
+  const notes = await getNotes();
 
   console.log(chalk.magenta.inverse('Here is the list of notes:'));
   notes.forEach((note) => {
@@ -45,4 +60,6 @@ module.exports = {
   addNote,
   printNotes,
   removeNote,
+  getNotes,
+  editNote,
 };
